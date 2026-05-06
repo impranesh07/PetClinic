@@ -3,6 +3,7 @@ import Care from '../Images/care.jpg'
 import emer from '../Images/emergency.jpg'
 import vaccine from '../Images/vaccine.jpg'
 import { useNavigate } from 'react-router-dom'
+import Vaccineservice from '../Pages/Vaccineservice'
 
 const Doctors = () => {
 
@@ -48,6 +49,8 @@ const Doctors = () => {
           const val=e.id
           if (val===3) {
              navigate('/petcare')
+          }else if(val===1){
+           navigate('/Vaccineservice')
           }
          }}
           >Get Service</button>

@@ -7,6 +7,7 @@ import { Route } from 'react-router-dom'
 import Petreg from './Pages/Petreg'
 import Appoin from './Pages/Bookappoinment'
 import Petcare from './Pages/Petcare'
+import Vaccineservice from './Pages/Vaccineservice'
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
         <Route path='Petreg' element={<Petreg/>}/>
         <Route path='/appoin' element={<Appoin/>} />
         <Route path='/petcare' element={<Petcare/>} />
+        <Route path='/Vaccineservice' element={<Vaccineservice/>} />
        </Routes>
      </div>
      <Footer/>
