@@ -13,7 +13,7 @@ const Header1 = () => {
         tabIndex="-1"
         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
         <Link to='/'>Clinic</Link>
-          <Link to=''>Store</Link>
+          <Link to='/shop'>Store</Link>
        <Link to='/appoin'>Book Appoinment</Link>
       </ul>
     </div>
@@ -27,7 +27,7 @@ const Header1 = () => {
   <div className="navbar-center hidden lg:flex">
     <ul className="menu menu-horizontal px-1  font-bold text-[18px] gap-10">
        <Link to='/'>Clinic</Link>
-       <Link to=''>Store</Link>
+       <Link to='/shop'>Store</Link>
        <Link to='/appoin'>Book Appoinment</Link>
     </ul>
   </div>
