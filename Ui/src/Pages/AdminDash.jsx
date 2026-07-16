@@ -4,8 +4,11 @@ import AdminOverview from '../Components/AdminOverview';
 import AdminDoctorM from '../Components/AdminDoctorM';
 import AdminBookingre from '../Components/AdminBookingre';
 import AdminServiceProvider from '../Components/AdminServiceProvider';
-// Added HeartHandshake icon for the new view option
-import { TrendingUp, ShieldAlert, LogOut, Stethoscope, Inbox, HeartHandshake } from 'lucide-react';
+import AdminDoctorList from '../Components/AdminDoctorList';
+import AdminaddPet from '../Components/AdminaddPet';
+import AdminProductList from '../Components/AdminProductList';
+// Added List icon alongside other Lucide imports
+import { TrendingUp, ShieldAlert, LogOut, Stethoscope, Inbox, HeartHandshake, Package, List } from 'lucide-react';
 
 const AdminDash = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,7 +26,6 @@ const AdminDash = () => {
     { id: "REQ-902", ownerName: "Pooja Das", petName: "Kitty (Persian Cat)", doctorRequested: "Dr. Ananya Chatterjee", date: "2026-07-10", time: "05:00 PM", status: "Pending" }
   ]);
 
-  // Added the missing providers state to store data for AdminServiceProvider
   const [providers, setProviders] = useState([
     { id: 1, name: "Paws & Claws Deluxe Spa", type: "Pet Grooming", experience: "4 Years", contact: "9830012345", rate: "₹1,200", details: "Luxury herbal bathing and nail grinding." },
     { id: 2, name: "Barkley Resort & Boarding", type: "Pet Boarding", experience: "6 Years", contact: "9876543210", rate: "₹850", details: "24/7 air-conditioned private pet cabins." }
@@ -62,10 +64,24 @@ const AdminDash = () => {
                 <span className="badge badge-sm badge-error text-white font-bold">{bookingRequests.filter(r => r.status === 'Pending').length}</span>
               </button>
             </li>
-            {/* Added Service option link right here */}
             <li>
               <button onClick={() => setCurrentView('services')} className={currentView === 'services' ? 'active bg-teal-500 text-white' : ''}>
                 <HeartHandshake size={18} /> Care Services
+              </button>
+            </li>
+            <li>
+              <button onClick={() => setCurrentView('doctorlist')} className={currentView === 'doctorlist'? 'active bg-teal-500 text-white': ''}>
+                <Stethoscope size={18} /> Doctor List
+              </button>
+            </li>
+            <li>
+              <button onClick={() => setCurrentView('addpet')} className={currentView === 'addpet' ? 'active bg-teal-500 text-white' : ''}>
+                <Package size={18} /> Add Toy Product
+              </button>
+            </li>
+            <li>
+              <button onClick={() => setCurrentView('productlist')} className={currentView === 'productlist' ? 'active bg-teal-500 text-white' : ''}>
+                <List size={18} /> Toy Catalog
               </button>
             </li>
           </ul>
@@ -79,10 +95,43 @@ const AdminDash = () => {
 
       {/* Dynamic Content Switching Hub */}
       <main className="flex-1 p-6 space-y-6 overflow-x-hidden">
-        {currentView === 'overview' && <AdminOverview metrics={metrics} doctorCount={doctors.length} />}
-        {currentView === 'doctors' && <AdminDoctorM doctors={doctors} onAddDoctor={(newDoc) => setDoctors([...doctors, newDoc])} />}
-        {currentView === 'requests' && <AdminBookingre requests={bookingRequests} onStatusChange={(id, status) => setBookingRequests(prev => prev.map(r => r.id === id ? {...r, status} : r))} />}
-        {currentView === 'services' && <AdminServiceProvider providers={providers} onAddProvider={(newProv) => setProviders([...providers, newProv])} />}
+        {currentView === 'overview' && (
+          <AdminOverview metrics={metrics} doctorCount={doctors.length} />
+        )}
+
+        {currentView === 'doctors' && (
+          <AdminDoctorM doctors={doctors} onAddDoctor={(newDoc) => setDoctors([...doctors, newDoc])} />
+        )}
+
+        {currentView === 'doctorlist' && (
+          <AdminDoctorList doctors={doctors} />
+        )}
+
+        {currentView === 'requests' && (
+          <AdminBookingre
+            requests={bookingRequests}
+            onStatusChange={(id, status) =>
+              setBookingRequests(prev =>
+                prev.map(r => r.id === id ? { ...r, status } : r)
+              )
+            }
+          />
+        )}
+
+        {currentView === 'services' && (
+          <AdminServiceProvider
+            providers={providers}
+            onAddProvider={(newProv) => setProviders([...providers, newProv])}
+          />
+        )}
+
+        {currentView === 'addpet' && (
+          <AdminaddPet />
+        )}
+
+        {currentView === 'productlist' && (
+          <AdminProductList />
+        )}
       </main>
     </div>
   );

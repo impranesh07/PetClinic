@@ -1,63 +1,136 @@
-import React from 'react';
-import { Check, X } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Check, X } from "lucide-react";
 
-const AdminBookingre = ({ requests, onStatusChange }) => {
+const AdminBookingre = () => {
+  const [requests, setRequests] = useState([]);
+
+  // Fetch vaccination requests
+  const fetchRequests = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/vaccination");
+      const data = await res.json();
+      setRequests(data);
+    } catch (err) {
+      console.error("Error fetching requests:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  // Approve / Reject
+  const updateStatus = async (id, action) => {
+    try {
+      const endpoint =
+        action === "Approved"
+          ? `http://127.0.0.1:5000/api/vaccination/${id}/approve`
+          : `http://127.0.0.1:5000/api/vaccination/${id}/reject`;
+
+      const res = await fetch(endpoint, {
+        method: "PUT",
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(data.message);
+        fetchRequests();
+      } else {
+        alert("Failed to update status");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-2xl font-bold tracking-tight">Booking Tickets Received</h2>
-        <p className="text-sm text-base-content/60">Review and authorize client requests for clinical consultations.</p>
+        <h2 className="text-2xl font-bold">
+          Vaccination Booking Requests
+        </h2>
+
+        <p className="text-sm text-base-content/60">
+          Review vaccination appointment requests.
+        </p>
       </header>
 
       <div className="card bg-base-100 shadow-sm border border-base-300">
-        <div className="overflow-x-auto w-full">
-          <table className="table w-full table-zebra">
+        <div className="overflow-x-auto">
+          <table className="table table-zebra">
             <thead>
-              <tr className="bg-base-200/60 text-sm">
-                <th>Ticket ID</th>
-                <th>Pet Owner</th>
-                <th>Patient Details</th>
-                <th>Assigned Specialist</th>
-                <th>Requested Slot</th>
-                <th className="text-center">Status Pipeline</th>
-                <th className="text-right">Action Gate</th>
+              <tr>
+                <th>ID</th>
+                <th>Pet Name</th>
+                <th>Age</th>
+                <th>Breed</th>
+                <th>Gender</th>
+                <th>Preferred Date</th>
+                <th>Vaccine</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
-            <tbody className="text-sm">
-              {requests.map((req) => (
-                <tr key={req.id} className="hover">
-                  <td className="font-mono font-bold text-base-content/60">{req.id}</td>
-                  <td className="font-semibold">{req.ownerName}</td>
-                  <td className="font-medium text-info">{req.petName}</td>
-                  <td className="font-medium">{req.doctorRequested}</td>
-                  <td>
-                    <div className="flex flex-col text-xs">
-                      <span className="font-semibold">{req.date}</span>
-                      <span className="text-base-content/60">{req.time}</span>
-                    </div>
-                  </td>
-                  <td className="text-center">
-                    <span className={`badge font-bold px-2.5 py-1 text-xs ${
-                      req.status === 'Approved' ? 'badge-success text-white' :
-                      req.status === 'Cancelled' ? 'badge-error text-white' : 'badge-warning text-amber-900'
-                    }`}>{req.status}</span>
-                  </td>
-                  <td className="text-right">
-                    <div className="flex justify-end gap-1.5">
-                      <button 
-                        onClick={() => onStatusChange(req.id, 'Approved')}
-                        disabled={req.status !== 'Pending'}
-                        className="btn btn-square btn-ghost btn-xs text-success disabled:opacity-20"
-                      ><Check size={18} /></button>
-                      <button 
-                        onClick={() => onStatusChange(req.id, 'Cancelled')}
-                        disabled={req.status !== 'Pending'}
-                        className="btn btn-square btn-ghost btn-xs text-error disabled:opacity-20"
-                      ><X size={18} /></button>
-                    </div>
+
+            <tbody>
+              {requests.length > 0 ? (
+                requests.map((req) => (
+                  <tr key={req.id}>
+                    <td>{req.id}</td>
+                    <td>{req.pet_name}</td>
+                    <td>{req.age}</td>
+                    <td>{req.breed}</td>
+                    <td>{req.gender}</td>
+                    <td>{req.preferred_date}</td>
+                    <td>{req.vaccine}</td>
+
+                    <td>
+                      <span
+                        className={`badge ${
+                          req.status === "Approved"
+                            ? "badge-success"
+                            : req.status === "Rejected"
+                            ? "badge-error"
+                            : "badge-warning"
+                        }`}
+                      >
+                        {req.status}
+                      </span>
+                    </td>
+
+                    <td>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() =>
+                            updateStatus(req.id, "Approved")
+                          }
+                          disabled={req.status !== "Pending"}
+                          className="btn btn-success btn-xs"
+                        >
+                          <Check size={16} />
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            updateStatus(req.id, "Rejected")
+                          }
+                          disabled={req.status !== "Pending"}
+                          className="btn btn-error btn-xs"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="9" className="text-center py-6">
+                    No vaccination requests found.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
