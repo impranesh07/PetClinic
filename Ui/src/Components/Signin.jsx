@@ -1,141 +1,166 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { GitBranch } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { auth } from "../firebase";
+import {
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+
+const googleProvider = new GoogleAuthProvider();
+const githubProvider = new GithubAuthProvider();
 
 const Signin = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false,
-  });
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, type, checked, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+  const [loading, setLoading] = useState(false);
+
+  // ==========================
+  // Save User to Flask Backend
+  // ==========================
+  const saveUser = async (user, provider) => {
+    const response = await fetch("http://127.0.0.1:5000/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        photo: user.photoURL,
+        provider,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to save user.");
+    }
+
+    return data;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle your authentication logic here
-    console.log('Form Submitted:', formData);
+  // ==========================
+  // Common Login Function
+  // ==========================
+  const login = async (provider, providerName) => {
+    try {
+      setLoading(true);
+
+      const result = await signInWithPopup(auth, provider);
+
+      const user = result.user;
+
+      // Save into Flask
+      await saveUser(user, providerName);
+
+      // Save locally
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
+          photo: user.photoURL,
+          provider: providerName,
+        })
+      );
+
+      alert(`Welcome ${user.displayName}`);
+
+      navigate("/user");
+    } catch (error) {
+      console.error(error);
+
+      if (error.code === "auth/popup-closed-by-user") {
+        alert("Login cancelled.");
+      } else if (error.code === "auth/cancelled-popup-request") {
+        alert("Please wait for the first popup to finish.");
+      } else {
+        alert(error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="bg-base-200 flex min-h-screen items-center justify-center p-4">
-      <div className="card bg-base-100 w-full max-w-md shadow-xl border border-base-300">
-        <div className="card-body gap-6">
-          
-          {/* Header */}
-          <div class="text-center">
-            <h2 className="card-title justify-center text-3xl font-bold tracking-tight text-base-content">
-              Welcome back
-            </h2>
-            <p className="text-sm text-base-content/60 mt-2">
-              Don't have an account?{' '}
-              <a href="#" className="link link-primary no-underline hover:underline font-medium">
-                Sign up
-              </a>
+    <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
+
+      <div className="card w-full max-w-md bg-base-100 shadow-xl border border-base-300">
+
+        <div className="card-body">
+
+          <div className="text-center mb-8">
+            <div className="text-6xl">🐾</div>
+
+            <h1 className="text-3xl font-bold mt-4">
+              Welcome to Petify
+            </h1>
+
+            <p className="text-base-content/60 mt-2">
+              Continue with your favorite account
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            
-            {/* Email Input */}
-            <div className="form-control w-full">
-              <label className="label" htmlFor="email">
-                <span className="label-text font-medium">Email address</span>
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                autocomplete="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="input input-bordered w-full focus:input-primary"
-              />
-            </div>
+          {/* Google Button */}
 
-            {/* Password Input */}
-            <div className="form-control w-full">
-              <div className="flex items-center justify-between">
-                <label className="label" htmlFor="password">
-                  <span className="label-text font-medium">Password</span>
-                </label>
-                <a href="#" className="link link-primary text-sm no-underline hover:underline font-medium">
-                  Forgot password?
-                </a>
-              </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                autocomplete="current-password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="input input-bordered w-full focus:input-primary"
-              />
-            </div>
-
-            {/* Remember Me Checkbox */}
-            <div className="form-control">
-              <label className="label cursor-pointer justify-start gap-3 select-none">
-                <input
-                  id="rememberMe"
-                  name="rememberMe"
-                  type="checkbox"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                  className="checkbox checkbox-primary checkbox-sm"
-                />
-                <span className="label-text text-base-content/70">Remember me for 30 days</span>
-              </label>
-            </div>
-
-            {/* Submit Button */}
-            <div className="form-control mt-2">
-              <button type="submit" className="btn btn-primary btn-block text-white font-semibold">
-                Sign in
-              </button>
-            </div>
-          </form>
-
-          {/* Social Divider */}
-          <div className="divider text-sm text-base-content/50">Or continue with</div>
-
-          {/* Social Buttons */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Google */}
-            <button
-              type="button"
-              className="btn btn-outline btn-sm h-11 gap-2 border-base-300 hover:bg-base-200 hover:text-base-content normal-case font-medium"
+          <button
+            className="btn btn-outline w-full h-12 mb-4 normal-case text-base"
+            disabled={loading}
+            onClick={() => login(googleProvider, "google")}
+          >
+            <svg
+              className="w-5 h-5 mr-2"
+              viewBox="0 0 48 48"
             >
-              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.258-3.133C18.42 1.921 15.56 1 12.24 1c-6.07 0-11 4.93-11 11s4.93 11 11 11c6.34 0 10.56-4.45 10.56-10.75 0-.725-.078-1.28-.174-1.665H12.24z"/>
-              </svg>
-              Google
-            </button>
+              <path
+                fill="#FFC107"
+                d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12S17.4 12 24 12c3 0 5.7 1.1 7.8 3l5.7-5.7C34.1 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.3-.4-3.5z"
+              />
+              <path
+                fill="#FF3D00"
+                d="M6.3 14.7l6.6 4.8C14.7 15 18.9 12 24 12c3 0 5.7 1.1 7.8 3l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"
+              />
+              <path
+                fill="#4CAF50"
+                d="M24 44c5.2 0 10-2 13.4-5.2l-6.2-5.2c-2.1 1.6-4.7 2.4-7.2 2.4-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.4 39.5 16.1 44 24 44z"
+              />
+              <path
+                fill="#1976D2"
+                d="M43.6 20.5H42V20H24v8h11.3c-.8 2.4-2.3 4.3-4.1 5.7l.1-.1 6.2 5.2C37 38.4 44 33 44 24c0-1.3-.1-2.3-.4-3.5z"
+              />
+            </svg>
 
-            {/* GitHub */}
-            <button
-              type="button"
-              className="btn btn-outline btn-sm h-11 gap-2 border-base-300 hover:bg-base-200 hover:text-base-content normal-case font-medium"
-            >
-              <svg className="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true">
-                <path fillRule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.137 18.2 20 14.444 20 10.017 20 4.484 15.522 0 10 0z" clip-rule="evenodd" />
-              </svg>
-              GitHub
-            </button>
-          </div>
+            {loading ? "Signing In..." : "Continue with Google"}
+          </button>
+
+          {/* GitHub */}
+
+          <button
+            className="btn btn-neutral w-full h-12 normal-case text-base"
+            disabled={loading}
+            onClick={() => login(githubProvider, "github")}
+          >
+            <GitBranch className="mr-2" size={20} />
+
+            {loading ? "Signing In..." : "Continue with GitHub"}
+          </button>
+
+          <div className="divider">Secure Login</div>
+
+          <p className="text-center text-sm text-base-content/60">
+            Your account is protected using Firebase Authentication.
+          </p>
 
         </div>
+
       </div>
+
     </div>
   );
 };

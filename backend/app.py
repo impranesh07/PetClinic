@@ -6,20 +6,28 @@ from sqlalchemy import inspect
 from config import Config
 from database.db import db
 
+# ===========================
 # Import Models
+# ===========================
 from models.doctor_model import Doctor
 from models.product import Product
 from models.vaccination import Vaccination
+from models.user import User
 
+# ===========================
 # Import Blueprints
+# ===========================
 from routes.contact_routes import contact_bp
 from routes.doctor_routes import doctor_bp
 from routes.product_routes import product_bp
 from routes.vaccination_routes import vaccination_bp
+from routes.auth_routes import auth_bp
 
 app = Flask(__name__)
 
-# Load Configuration
+# ===========================
+# Configuration
+# ===========================
 app.config.from_object(Config)
 
 # Enable CORS
@@ -28,43 +36,65 @@ CORS(app)
 # Initialize Database
 db.init_app(app)
 
+# ===========================
 # Register Blueprints
+# ===========================
 app.register_blueprint(contact_bp)
 app.register_blueprint(doctor_bp)
 app.register_blueprint(product_bp)
 app.register_blueprint(vaccination_bp)
+app.register_blueprint(auth_bp)
 
+# ===========================
 # Create Database Tables
+# ===========================
 with app.app_context():
     db.create_all()
 
-    print("=" * 50)
-    print("Petify Backend Started Successfully")
-    print("=" * 50)
+    print("=" * 60)
+    print("🚀 Petify Backend Started Successfully")
+    print("=" * 60)
 
     # Contact Database
-    print("\nContact Database")
-    contact_inspector = inspect(db.engine)
-    print(contact_inspector.get_table_names())
+    try:
+        print("\nContact Database")
+        print(inspect(db.engine).get_table_names())
+    except Exception as e:
+        print("Contact DB Error:", e)
 
     # Doctor Database
-    doctor_inspector = inspect(db.engines["doctor"])
-    print("\nDoctor Database")
-    print(doctor_inspector.get_table_names())
+    try:
+        print("\nDoctor Database")
+        print(inspect(db.engines["doctor"]).get_table_names())
+    except Exception as e:
+        print("Doctor DB Error:", e)
 
     # Product Database
-    product_inspector = inspect(db.engines["product"])
-    print("\nProduct Database")
-    print(product_inspector.get_table_names())
+    try:
+        print("\nProduct Database")
+        print(inspect(db.engines["product"]).get_table_names())
+    except Exception as e:
+        print("Product DB Error:", e)
 
     # Vaccination Database
-    vaccination_inspector = inspect(db.engines["vaccination"])
-    print("\nVaccination Database")
-    print(vaccination_inspector.get_table_names())
+    try:
+        print("\nVaccination Database")
+        print(inspect(db.engines["vaccination"]).get_table_names())
+    except Exception as e:
+        print("Vaccination DB Error:", e)
 
-    print("=" * 50)
+    # User Database
+    try:
+        print("\nUser Database")
+        print(inspect(db.engines["user"]).get_table_names())
+    except Exception as e:
+        print("User DB Error:", e)
 
+    print("=" * 60)
 
+# ===========================
+# Home Route
+# ===========================
 @app.route("/")
 def home():
     return {
@@ -72,12 +102,16 @@ def home():
         "message": "Petify Flask Backend Running"
     }
 
-
+# ===========================
+# Serve Uploaded Images
+# ===========================
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     return send_from_directory("uploads", filename)
 
-
+# ===========================
+# Run Server
+# ===========================
 if __name__ == "__main__":
     os.makedirs("uploads", exist_ok=True)
 
