@@ -7,8 +7,20 @@ import AdminServiceProvider from '../Components/AdminServiceProvider';
 import AdminDoctorList from '../Components/AdminDoctorList';
 import AdminaddPet from '../Components/AdminaddPet';
 import AdminProductList from '../Components/AdminProductList';
+import AdminBookings from '../Components/AdminBookings';
 // Added List icon alongside other Lucide imports
-import { TrendingUp, ShieldAlert, LogOut, Stethoscope, Inbox, HeartHandshake, Package, List } from 'lucide-react';
+import {
+  TrendingUp,
+  ShieldAlert,
+  LogOut,
+  Stethoscope,
+  Inbox,
+  HeartHandshake,
+  Package,
+  List,
+  CalendarCheck
+} from 'lucide-react';
+
 
 const AdminDash = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -84,6 +96,14 @@ const AdminDash = () => {
                 <List size={18} /> Toy Catalog
               </button>
             </li>
+            <li>
+  <button
+    onClick={() => setCurrentView('bookings')}
+    className={currentView === 'bookings' ? 'active bg-teal-500 text-white' : ''}
+  >
+    <CalendarCheck size={18} /> Service Bookings
+  </button>
+</li>
           </ul>
         </div>
         <div className="pt-4 border-t border-base-300 mt-6 lg:mt-0">
@@ -132,6 +152,9 @@ const AdminDash = () => {
         {currentView === 'productlist' && (
           <AdminProductList />
         )}
+
+        {currentView === 'bookings' && (
+  <AdminBookings /> )}
       </main>
     </div>
   );

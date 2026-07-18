@@ -4,6 +4,7 @@ import emer from '../Images/emergency.jpg'
 import vaccine from '../Images/vaccine.jpg'
 import { useNavigate } from 'react-router-dom'
 import Vaccineservice from '../Pages/Vaccineservice'
+import EmergencyServices from '../Pages/EmergencyServices'
 
 const Doctors = () => {
 
@@ -51,6 +52,8 @@ const Doctors = () => {
              navigate('/petcare')
           }else if(val===1){
            navigate('/Vaccineservice')
+          }else if(val==2){
+            navigate('/EmergencyServices')
           }
          }}
           >Get Service</button>
