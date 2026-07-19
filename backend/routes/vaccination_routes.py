@@ -1,5 +1,4 @@
 from flask import Blueprint, request, jsonify
-
 from database.db import db
 from models.vaccination import Vaccination
 
@@ -9,22 +8,19 @@ vaccination_bp = Blueprint(
     url_prefix="/api"
 )
 
-
 # =====================================
 # Submit Vaccination Request
 # =====================================
 @vaccination_bp.route("/vaccination", methods=["POST"])
 def add_vaccination():
-
     try:
         data = request.get_json()
-
-        print("Received Data:", data)
 
         if not data:
             return jsonify({"error": "No JSON data received"}), 400
 
         vaccination = Vaccination(
+            user_uid=data.get("user_uid"),   # Firebase UID
             pet_name=data.get("pet_name"),
             age=data.get("age"),
             breed=data.get("breed"),
@@ -43,19 +39,42 @@ def add_vaccination():
 
     except Exception as e:
         db.session.rollback()
-        print(e)
-        return jsonify({
-            "error": str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
 
 # =====================================
-# Admin Get All Requests
+# Admin - Get All Requests
 # =====================================
 @vaccination_bp.route("/vaccination", methods=["GET"])
 def get_vaccinations():
 
     vaccinations = Vaccination.query.all()
+
+    result = []
+
+    for item in vaccinations:
+        result.append({
+            "id": item.id,
+            "user_uid": item.user_uid,
+            "pet_name": item.pet_name,
+            "age": item.age,
+            "breed": item.breed,
+            "gender": item.gender,
+            "preferred_date": item.preferred_date,
+            "vaccine": item.vaccine,
+            "status": item.status
+        })
+
+    return jsonify(result)
+
+
+# =====================================
+# User - Get Own Requests
+# =====================================
+@vaccination_bp.route("/vaccination/user/<string:user_uid>", methods=["GET"])
+def get_user_vaccination(user_uid):
+
+    vaccinations = Vaccination.query.filter_by(user_uid=user_uid).all()
 
     result = []
 
@@ -87,7 +106,7 @@ def approve_request(id):
     db.session.commit()
 
     return jsonify({
-        "message": "Vaccination Approved"
+        "message": "Vaccination Approved Successfully"
     })
 
 
@@ -104,5 +123,5 @@ def reject_request(id):
     db.session.commit()
 
     return jsonify({
-        "message": "Vaccination Rejected"
+        "message": "Vaccination Rejected Successfully"
     })

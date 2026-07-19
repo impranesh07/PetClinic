@@ -6,6 +6,9 @@ class Vaccination(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    # Firebase User UID
+    user_uid = db.Column(db.String(200), nullable=False)
+
     pet_name = db.Column(db.String(100), nullable=False)
 
     age = db.Column(db.String(50), nullable=False)

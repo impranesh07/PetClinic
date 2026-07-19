@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getAuth } from "firebase/auth";
 
 const Vaccineservice = () => {
   const [formData, setFormData] = useState({
@@ -38,7 +39,16 @@ const Vaccineservice = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic frontend validations before triggering network requests
+    // 1. Get auth state and validate the user is logged in
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user || !user.uid) {
+      alert("Please login first.");
+      return;
+    }
+
+    // 2. Basic frontend validations for required inputs
     if (!formData.name || !formData.date || !formData.vaccine) {
       alert("Please fill out all required fields (Pet Name, Date, and Vaccine).");
       return;
@@ -53,12 +63,13 @@ const Vaccineservice = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-           pet_name: formData.name,
-           age: formData.age,
-           breed: formData.breed,
-           gender: formData.gender,
-           preferred_date: formData.date,
-           vaccine: formData.vaccine
+          user_uid: user.uid,
+          pet_name: formData.name,
+          age: formData.age,
+          breed: formData.breed,
+          gender: formData.gender,
+          preferred_date: formData.date,
+          vaccine: formData.vaccine
         }),
       });
 

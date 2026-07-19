@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import Header1 from "./Components/Header1";
 import Footer from "./Components/Footer";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, useNavigate } from "react-router-dom";
 
 import Home from "./Pages/index";
 import Petreg from "./Pages/Petreg";
 import Appoin from "./Pages/Bookappoinment";
 import Petcare from "./Pages/Petcare";
 import Vaccineservice from "./Pages/Vaccineservice";
-import EmergencyServices from "./Pages/EmergencyServices"; // 1. IMPORTED NEW PAGE
+import EmergencyServices from "./Pages/EmergencyServices";
 import Store from "./Pages/Shop";
 
-import Cart from "./Components/Cart";
+import Cart from "./Components/Cart"; // Single Cart component handles review & checkout steps internally
 import Signin from "./Components/Signin";
 import UserPanel from "./Components/UserPanel";
 
@@ -35,9 +35,10 @@ const NotFound = () => (
 // ============================
 // WEBSITE LAYOUT
 // ============================
-const WebsiteLayout = () => (
+const WebsiteLayout = ({ cartCount }) => (
   <div className="bg-amber-50 min-h-screen flex flex-col">
-    <Header1 />
+    {/* Passed cartCount down so Header1 can display item counts over the basket */}
+    <Header1 cartCount={cartCount} />
     <main className="flex-1">
       <Outlet />
     </main>
@@ -49,9 +50,11 @@ const WebsiteLayout = () => (
 // APP
 // ============================
 const App = () => {
+  const navigate = useNavigate();
   const [cart, setCart] = useState([]);
   const [addedItems, setAddedItems] = useState({});
 
+  // 1. Add item to cart
   const handleAddItem = (product) => {
     setCart((prev) => {
       const exists = prev.find((item) => item.id === product.id);
@@ -69,6 +72,28 @@ const App = () => {
     }));
   };
 
+  // 2. Adjust item counts up or down inside the cart views
+  const handleUpdateQty = (id, newQty) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, qty: Math.max(1, newQty) } : item
+      )
+    );
+  };
+
+  // 3. Delete items completely out of context and revert catalog buttons
+  const handleRemoveItem = (id) => {
+    setCart((prev) => prev.filter((item) => item.id !== id));
+    setAddedItems((prev) => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+  };
+
+  // Global running aggregate item sum calculation
+  const totalItemsCount = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
+
   return (
     <Routes>
       {/* =====================
@@ -80,7 +105,7 @@ const App = () => {
       {/* =====================
       WEBSITE
       ===================== */}
-      <Route element={<WebsiteLayout />}>
+      <Route element={<WebsiteLayout cartCount={totalItemsCount} />}>
         <Route path="/" element={<Home />} />
 
         {/* LOGIN REQUIRED */}
@@ -120,7 +145,6 @@ const App = () => {
           }
         />
 
-        {/* 2. REGISTERED EMERGENCY SERVICES ROUTE */}
         <Route
           path="/EmergencyServices"
           element={
@@ -130,6 +154,7 @@ const App = () => {
           }
         />
 
+        {/* SHOP ROUTE - FIXED */}
         <Route
           path="/shop"
           element={
@@ -138,16 +163,24 @@ const App = () => {
                 cart={cart}
                 onAdd={handleAddItem}
                 addedItems={addedItems}
+                onViewCart={() => navigate("/cart")}
               />
             </ProtectedRoute>
           }
         />
 
+        {/* UNIFIED CART & CHECKOUT PIPELINE */}
         <Route
           path="/cart"
           element={
             <ProtectedRoute>
-              <Cart cart={cart} setCart={setCart} />
+              <Cart 
+                cart={cart} 
+                setCart={setCart}
+                onUpdateQty={handleUpdateQty}
+                onRemoveItem={handleRemoveItem}
+                onBackToShop={() => navigate("/shop")}
+              />
             </ProtectedRoute>
           }
         />

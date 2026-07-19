@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Edit, Trash2, Box, AlertCircle, Loader2 } from 'lucide-react';
 
 const AdminProductList = () => {
-  // 1. Initialize empty state for backend integration
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -10,10 +9,8 @@ const AdminProductList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // Replace this URL with your actual Flask server endpoint (e.g., http://127.0.0.1:5000/api/product)
-  const API_BASE_URL = '/api/product';
+  const API_BASE_URL = "http://127.0.0.1:5000/api/products";
 
-  // 2. Fetch products on initial mount
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -38,7 +35,6 @@ const AdminProductList = () => {
     }
   };
 
-  // 3. Handle product deletion with real backend Sync
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to remove this toy from the store?")) return;
 
@@ -51,14 +47,12 @@ const AdminProductList = () => {
         throw new Error("Failed to delete the product from the database.");
       }
 
-      // Optimistically update UI state after successful API deletion
       setProducts(products.filter(product => product.id !== id));
     } catch (err) {
       alert(err.message);
     }
   };
 
-  // Filtered products list
   const filteredProducts = products.filter(product => {
     const nameMatch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
     const materialMatch = product.material?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
@@ -121,7 +115,7 @@ const AdminProductList = () => {
           </div>
         </div>
 
-        {/* 4. Network Status UI Layers (Loading & Error States) */}
+        {/* Network Status UI Layers */}
         {isLoading ? (
           <div className="bg-base-100 rounded-2xl p-16 text-center border border-base-300 flex flex-col items-center justify-center gap-3">
             <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
@@ -142,75 +136,92 @@ const AdminProductList = () => {
             </div>
           </div>
         ) : filteredProducts.length > 0 ? (
-          /* Product Cards Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          /* Streamlined Product Grid */
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="bg-base-100 rounded-2xl shadow-sm border border-base-300 overflow-hidden flex flex-col justify-between hover:shadow-md transition duration-200">
-                <div>
-                  {/* Toy Image Preview / Placeholder */}
-                  <div className="h-48 bg-gray-100 relative flex items-center justify-center border-b border-base-300">
-                    {product.image ? (
-                      <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-gray-400">
-                        <span className="text-5xl mb-1">🧸</span>
-                        <span className="text-xs uppercase tracking-wider font-semibold">No Image Uploaded</span>
-                      </div>
-                    )}
-                    <span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
-                      product.status === "In Stock" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                    }`}>
-                      {product.status}
-                    </span>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="p-5 space-y-4">
-                    <div>
-                      <span className="text-xs font-semibold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-md uppercase tracking-wider">
-                        {product.category}
-                      </span>
-                      <h2 className="text-lg font-bold text-base-content mt-2 line-clamp-1">{product.name}</h2>
+              <div 
+                key={product.id} 
+                className="card card-side bg-base-100 max-h-44 shadow-sm border border-base-300 overflow-hidden hover:shadow-md transition duration-200"
+              >
+                {/* Fixed Image Container to prevent layout collapse */}
+                <div className="w-32 sm:w-40 shrink-0 h-full bg-base-200 relative border-r border-base-300">
+                  {product.image && product.image.trim() !== "" ? (
+                    <img 
+                      src={product.image} 
+                      alt={product.name} 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => {
+                        // Fallback fallback if the URL breaks or returns a 404
+                        e.target.onerror = null; 
+                        e.target.parentElement.innerHTML = `
+                          <div class="flex flex-col items-center justify-center text-gray-400 h-full w-full bg-base-200">
+                            <span class="text-3xl mb-0.5">🧸</span>
+                            <span class="text-[10px] uppercase tracking-wider font-semibold text-center px-1">Broken Link</span>
+                          </div>
+                        `;
+                      }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-gray-400 h-full w-full bg-base-200">
+                      <span className="text-3xl mb-0.5">🧸</span>
+                      <span className="text-[10px] uppercase tracking-wider font-semibold text-center px-1">No Image</span>
                     </div>
-
-                    <p className="text-xs text-gray-500 line-clamp-2 min-h-[2rem]">
-                      {product.description}
-                    </p>
-
-                    {/* Metadata details table */}
-                    <div className="grid grid-cols-2 gap-y-2 pt-2 border-t border-base-200 text-xs text-base-content/70">
-                      <div>
-                        <span className="font-semibold text-gray-400 block uppercase tracking-tight">Material</span>
-                        <span className="font-medium text-base-content">{product.material}</span>
-                      </div>
-                      <div>
-                        <span className="font-semibold text-gray-400 block uppercase tracking-tight">Age Group</span>
-                        <span className="font-medium text-base-content">{product.ageGroup}</span>
-                      </div>
-                    </div>
-                  </div>
+                  )}
+                  {/* Status Badge inside image frame */}
+                  <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold shadow-sm z-10 ${
+                    product.status === "In Stock" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                  }`}>
+                    {product.status}
+                  </span>
                 </div>
 
-                {/* Pricing & Actions footer */}
-                <div className="p-5 pt-0 mt-auto flex items-center justify-between border-t border-base-200 bg-base-50/50">
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-lg font-extrabold text-base-content">₹{product.price}</span>
+                {/* Condensed Core Body Text Area */}
+                <div className="card-body p-3.5 justify-between min-w-0 flex-1">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded uppercase tracking-wider truncate">
+                        {product.category}
+                      </span>
+                      <span className="text-base font-extrabold text-base-content shrink-0">
+                        ₹{product.price}
+                      </span>
+                    </div>
+                    
+                    <h2 className="text-sm font-bold text-base-content truncate mt-1" title={product.name}>
+                      {product.name}
+                    </h2>
+                    
+                    <p className="text-xs text-gray-500 line-clamp-2 leading-tight">
+                      {product.description}
+                    </p>
                   </div>
-                  
-                  <div className="flex items-center gap-1.5">
-                    <button 
-                      className="p-2 hover:bg-teal-50 text-teal-600 rounded-lg transition"
-                      title="Edit Product"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(product.id)}
-                      className="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition"
-                      title="Delete Product"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+
+                  {/* Metadata & Actions alignment row */}
+                  <div className="flex items-center justify-between pt-2 border-t border-base-200 mt-1">
+                    <div className="flex gap-x-3 text-[11px] text-base-content/70 truncate">
+                      <span className="truncate">
+                        <strong className="text-gray-400">Mat:</strong> {product.material || "N/A"}
+                      </span>
+                      <span className="shrink-0">
+                        <strong className="text-gray-400">Age:</strong> {product.ageGroup || "N/A"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                      <button 
+                        className="p-1.5 hover:bg-teal-50 text-teal-600 rounded-md transition"
+                        title="Edit Product"
+                      >
+                        <Edit size={14} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(product.id)}
+                        className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-md transition"
+                        title="Delete Product"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
