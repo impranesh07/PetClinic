@@ -80,12 +80,22 @@ const index = () => {
         {/*section3 */}
         <div className="section ">
             <div className="top">
-                 <div className="text p-5 text-center">
-              <h1 className='text-3xl font-semibold'>Our Services</h1>
-              <p className='text-teal-600 pt-5 hidden lg:block'>Lorem ipsum dolor sit amet, consectetur adipisicing elit.<br></br>Sit suscipit doloremque vitae adipisci, doloribus assumenda accusantium, eveniet quae dolores vel consectetur.</p>
-              <p className='text-teal-600 pt-4 lg:hidden'>Lorem ipsum dolor sit amet, consectetur<br></br> adipisicing elit.Sit suscipit doloremque vitae adipisci, doloribus assumenda accusantium, eveniet quae dolores vel consectetur.</p>
-          </div>
-            </div>
+  <div className="text p-5 text-center">
+    <h1 className="text-3xl font-semibold">Our Services</h1>
+    
+    {/* Desktop view */}
+    <p className="text-teal-600 pt-5 hidden lg:block max-w-2xl mx-auto">
+      From routine checkups and preventive vaccinations to round-the-clock emergency care, 
+      we provide complete medical and wellness support to keep your pets healthy and thriving.
+    </p>
+
+    {/* Mobile view */}
+    <p className="text-teal-600 pt-4 lg:hidden text-sm">
+      From routine checkups and vaccinations to 24/7 emergency care, 
+      we provide complete medical support to keep your pets healthy and happy.
+    </p>
+  </div>
+</div>
             <div className="doctors_data" id='services_doc' >
                  <Doctors/>
             </div>
